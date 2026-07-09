@@ -1,0 +1,8 @@
+# Apache: закрываем конфиг от прямого доступа
+<Files "config.php">
+    Require all denied
+</Files>
+
+# Чуть увеличим лимиты для длинных текстов, если хостинг разрешает
+php_value max_execution_time 300
+php_value post_max_size 8M
