@@ -493,6 +493,7 @@ $customMaleReferenceId = post_string('custom_male_reference_id', '');
 $customFemaleReferenceId = post_string('custom_female_reference_id', '');
 $dialogueMode = allowed_value(post_string('dialogue_mode', 'auto'), ['auto', 'native', 'segments'], 'auto');
 $dialogueOutputFormat = allowed_value(post_string('dialogue_output_format', 'mp3'), ['mp3', 'wav'], 'mp3');
+$activeTab = allowed_value(post_string('active_tab', post_string('action') === 'synthesize' ? 'single' : 'dialogue'), ['dialogue', 'single'], 'dialogue');
 
 if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post_string('action'), ['synthesize', 'synthesize_dialogue'], true)) {
     if ($apiKey === '' || str_contains($apiKey, 'PASTE_YOUR')) {
@@ -779,22 +780,22 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post_string
         }
         .submit-zone button, .submit-zone .button { width: 100%; min-height: 58px; font-size: 17px; }
         .grid, .grid2 { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: end; }
-        .dialogue-form > .dialogue-voices { order: 1; }
-        .dialogue-form > label[for="dialogue_text"] { order: 2; }
-        .dialogue-form > #dialogue_text { order: 3; }
-        .dialogue-form > .utility-actions { order: 4; }
+        .dialogue-form > label[for="dialogue_text"] { order: 1; }
+        .dialogue-form > #dialogue_text { order: 2; }
+        .dialogue-form > .utility-actions { order: 3; }
+        .dialogue-form > .dialogue-voices { order: 4; }
         .dialogue-form > .submit-zone { order: 5; }
         .dialogue-form > .dialogue-settings { order: 6; }
         .dialogue-form > .dialogue-pause { order: 7; }
         .dialogue-form > .hint { order: 8; }
         .dialogue-form > .advanced-settings { order: 9; }
-        .single-form > .single-settings { order: 1; }
-        .single-form > .custom-voice { order: 2; }
-        .single-form > label[for="text"] { order: 3; }
-        .single-form > #text { order: 4; }
-        .single-form > .utility-actions { order: 5; }
-        .single-form > .submit-zone { order: 6; }
-        .single-form > .tag-panel { order: 7; }
+        .single-form > label[for="text"] { order: 1; }
+        .single-form > #text { order: 2; }
+        .single-form > .utility-actions { order: 3; }
+        .single-form > .tag-panel { order: 4; }
+        .single-form > .single-settings { order: 5; }
+        .single-form > .custom-voice { order: 6; }
+        .single-form > .submit-zone { order: 7; }
         .single-form > .advanced-settings { order: 8; }
         .single-form > .hint { order: 9; }
         .muted { color: var(--muted); margin-top: 0; }
@@ -809,33 +810,42 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post_string
         .ok { background: var(--success-bg); border-color: var(--success-line); color: var(--success-text); }
         .error { background: var(--error-bg); border-color: var(--error-line); color: var(--error-text); white-space: pre-wrap; }
         .note { background: var(--note-bg); border-color: var(--note-line); color: var(--note-text); }
-        .mode-nav {
+        .mode-tabs {
             position: sticky;
             top: 8px;
             z-index: 25;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            padding: 8px;
+            gap: 6px;
+            padding: 6px;
             margin: 0 0 14px;
             border: 1px solid rgba(255,255,255,.70);
-            border-radius: 999px;
-            background: rgba(255,255,255,.78);
+            border-radius: 18px;
+            background: rgba(255,255,255,.86);
             backdrop-filter: blur(16px);
             box-shadow: 0 12px 28px rgba(16,24,40,.10);
         }
-        .mode-nav a {
-            min-height: 46px;
+        .mode-tab {
+            min-height: 48px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 999px;
+            border: 0;
+            border-radius: 14px;
             color: #3538cd;
-            background: rgba(91,92,246,.08);
+            background: transparent;
             text-decoration: none;
             font-weight: 900;
-            font-size: 14px;
+            font-size: 15px;
+            box-shadow: none;
         }
+        .mode-tab.is-active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-2));
+            color: #fff;
+            box-shadow: 0 10px 22px rgba(91,92,246,.24);
+        }
+        .tab-panel[hidden] { display: none; }
+        .mode-card { scroll-margin-top: 86px; }
         .hint, .tag-panel, .advanced-settings {
             margin-top: 14px;
             padding: 14px;
@@ -843,7 +853,11 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post_string
             border-radius: 20px;
             background: rgba(248, 250, 252, .82);
             color: #344054;
+            line-height: 1.55;
         }
+        .hint-rows { display: grid; gap: 8px; }
+        .hint-row { display: grid; gap: 5px; }
+        .hint-label { font-weight: 900; color: #182230; }
         .advanced-settings { padding: 0; overflow: hidden; }
         .advanced-settings summary {
             min-height: var(--tap);
@@ -857,11 +871,17 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post_string
         }
         .advanced-settings .advanced-content { padding: 0 14px 14px; }
         code {
+            display: inline-block;
+            max-width: 100%;
             background: rgba(91, 92, 246, .10);
             color: #3538cd;
             border: 1px solid rgba(91, 92, 246, .12);
             border-radius: 9px;
-            padding: 2px 7px;
+            padding: 3px 7px;
+            margin: 1px 0;
+            line-height: 1.35;
+            vertical-align: baseline;
+            overflow-wrap: anywhere;
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
         }
         .custom-voice { display: none; }
@@ -941,8 +961,8 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post_string
                 box-shadow: none;
             }
             .submit-zone button, .submit-zone .button { width: auto; min-height: 48px; font-size: 15px; }
-            .mode-nav { position: static; display: flex; width: fit-content; border-radius: 999px; margin-bottom: 22px; }
-            .mode-nav a { min-width: 150px; }
+            .mode-tabs { position: static; display: inline-grid; grid-template-columns: 170px 170px; border-radius: 18px; margin-bottom: 22px; }
+            .mode-tab { min-width: 150px; }
             .chips { flex-wrap: wrap; overflow: visible; }
             .sample-row { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
         }
@@ -952,7 +972,7 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post_string
             .hero-card { padding: 16px; }
             h1 { font-size: 30px; }
             .submit-zone { margin-inline: -2px; }
-            .mode-nav a { font-size: 13px; }
+            .mode-tab { font-size: 14px; }
         }
         @media (prefers-color-scheme: dark) {
             :root { color-scheme: dark; --surface: rgba(15, 23, 42, .84); --text: #eef2ff; --muted: #aab3c5; --line: rgba(255,255,255,.12); }
@@ -965,8 +985,10 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post_string
             textarea:focus, input:focus, select:focus { background: rgba(2,6,23,.95); }
             .muted, .small, .tag-panel-desc { color: var(--muted); }
             .hint, .tag-panel, .advanced-settings { background: rgba(2, 6, 23, .48); border-color: rgba(255,255,255,.10); color: #cbd5e1; }
-            .mode-nav { background: rgba(15,23,42,.78); border-color: rgba(255,255,255,.12); }
-            .mode-nav a { background: rgba(129,140,248,.14); color: #e0e7ff; }
+            .mode-tabs { background: rgba(15,23,42,.86); border-color: rgba(255,255,255,.12); }
+            .mode-tab { color: #e0e7ff; }
+            .mode-tab.is-active { color: #fff; }
+            .hint-label { color: #f8fafc; }
             .submit-zone { background: rgba(15, 23, 42, .82); border-color: rgba(129,140,248,.22); }
             .tag-group-title { color: #e2e8f0; }
             code { background: rgba(129,140,248,.14); color: #c7d2fe; border-color: rgba(129,140,248,.20); }
@@ -1025,23 +1047,28 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post_string
                 <?php endif; ?>
             <?php endif; ?>
 
-            <div class="hint">
-                Формат диалога в поле остаётся человеческим: <code>М: текст мужчины</code> и <code>Ж: текст женщины</code>. В режиме Fish native сайт сам превращает это в <code>&lt;|speaker:0|&gt;</code> и <code>&lt;|speaker:1|&gt;</code>, а <code>reference_id</code> отправляет массивом из двух голосов. Резервная склейка доступна на случай, если native-режим не сработает на выбранной модели. ffmpeg сейчас: <strong><?= $ffmpegStatus ? 'доступен' : 'не найден/запрещён' ?></strong>.
+            <div class="hint compact-hint">
+                <div class="hint-rows">
+                    <div class="hint-row"><span class="hint-label">Формат диалога</span><span><code>М: текст мужчины</code> или <code>Ж: текст женщины</code></span></div>
+                    <div class="hint-row"><span class="hint-label">Fish native</span><span>Сайт сам превращает реплики в <code>&lt;|speaker:0|&gt;</code> и <code>&lt;|speaker:1|&gt;</code>, а <code>reference_id</code> отправляет массивом из двух голосов.</span></div>
+                    <div class="hint-row"><span class="hint-label">Резерв</span><span>Склейка реплик остаётся на случай ошибки native-режима. ffmpeg сейчас: <strong><?= $ffmpegStatus ? 'доступен' : 'не найден/запрещён' ?></strong>.</span></div>
+                </div>
             </div>
         <?php endif; ?>
     </div>
 
     <?php if ($isLoggedIn): ?>
-    <nav class="mode-nav" aria-label="Режимы озвучки">
-        <a href="#dialogue-card">Диалог</a>
-        <a href="#single-card">Один голос</a>
-    </nav>
+    <div class="mode-tabs" role="tablist" aria-label="Режимы озвучки">
+        <button type="button" class="mode-tab <?= $activeTab === 'dialogue' ? 'is-active' : '' ?>" role="tab" aria-selected="<?= $activeTab === 'dialogue' ? 'true' : 'false' ?>" aria-controls="dialogue-card" data-tab="dialogue">Диалог</button>
+        <button type="button" class="mode-tab <?= $activeTab === 'single' ? 'is-active' : '' ?>" role="tab" aria-selected="<?= $activeTab === 'single' ? 'true' : 'false' ?>" aria-controls="single-card" data-tab="single">Один голос</button>
+    </div>
 
-    <div class="card mode-card" id="dialogue-card">
+    <div class="card mode-card tab-panel <?= $activeTab === 'dialogue' ? 'is-active' : '' ?>" id="dialogue-card" role="tabpanel" data-tab-panel="dialogue" <?= $activeTab === 'dialogue' ? '' : 'hidden' ?>>
         <h2>Диалог: мужчина + женщина</h2>
         <p class="muted">По умолчанию сначала используется native multi-speaker Fish Audio — один запрос и один цельный файл. Если API вернёт ошибку, режим «Авто» попробует старую склейку реплик.</p>
         <form method="post" class="voice-form dialogue-form">
             <input type="hidden" name="action" value="synthesize_dialogue">
+            <input type="hidden" name="active_tab" value="dialogue">
 
             <label for="dialogue_text">Сценарий диалога</label>
             <textarea id="dialogue_text" class="dialogue-textarea" name="dialogue_text" required><?= h($lastDialogueText) ?></textarea>
@@ -1104,8 +1131,10 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post_string
             </div>
 
             <div class="hint">
-                Пример: <code>М: [calm] Привет.</code> / <code>Ж: [excited] Сегодня разбираем [English]rainforest!</code><br>
-                В Fish native это уйдёт как <code>&lt;|speaker:0|&gt;[calm] Привет.</code> и <code>&lt;|speaker:1|&gt;[excited] ...</code>
+                <div class="hint-rows">
+                    <div class="hint-row"><span class="hint-label">Пример сценария</span><span><code>М: [calm] Привет.</code></span><span><code>Ж: [excited] Сегодня разбираем [English]rainforest!</code></span></div>
+                    <div class="hint-row"><span class="hint-label">Что отправится в Fish</span><span><code>&lt;|speaker:0|&gt;[calm] Привет.</code></span><span><code>&lt;|speaker:1|&gt;[excited] ...</code></span></div>
+                </div>
             </div>
 
             <div class="actions submit-zone">
@@ -1117,10 +1146,11 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post_string
         </form>
     </div>
 
-    <div class="card mode-card" id="single-card">
+    <div class="card mode-card tab-panel <?= $activeTab === 'single' ? 'is-active' : '' ?>" id="single-card" role="tabpanel" data-tab-panel="single" <?= $activeTab === 'single' ? '' : 'hidden' ?>>
         <h2>Обычная озвучка одним голосом</h2>
         <form method="post" class="voice-form single-form">
             <input type="hidden" name="action" value="synthesize">
+            <input type="hidden" name="active_tab" value="single">
 
             <label for="text">Текст</label>
             <textarea id="text" name="text" required><?= h($lastText) ?></textarea>
@@ -1256,6 +1286,27 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post_string
     toggleCustom('voice_preset', 'customVoiceWrap');
     toggleCustom('male_voice_preset', 'customMaleVoiceWrap');
     toggleCustom('female_voice_preset', 'customFemaleVoiceWrap');
+
+    const tabs = document.querySelectorAll('.mode-tab');
+    const panels = document.querySelectorAll('[data-tab-panel]');
+    function activateTab(name) {
+        tabs.forEach((tab) => {
+            const isActive = tab.getAttribute('data-tab') === name;
+            tab.classList.toggle('is-active', isActive);
+            tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+        panels.forEach((panel) => {
+            panel.hidden = panel.getAttribute('data-tab-panel') !== name;
+        });
+        try { window.localStorage.setItem('fish_tts_active_tab', name); } catch (e) {}
+    }
+    tabs.forEach((tab) => {
+        tab.addEventListener('click', () => activateTab(tab.getAttribute('data-tab')));
+    });
+    try {
+        const savedTab = window.localStorage.getItem('fish_tts_active_tab');
+        if (savedTab && !document.querySelector('.alert.ok')) activateTab(savedTab);
+    } catch (e) {}
 
     function tagEnglish(text) {
         return text.replace(/\b[A-Za-z][A-Za-z0-9+.#'’\-]*\b/g, function (match, offset, full) {
