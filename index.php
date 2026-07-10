@@ -610,22 +610,20 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post_string
 <html lang="ru">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Fish Audio TTS</title>
     <style>
         :root {
             color-scheme: light;
-            --bg: #eef3ff;
-            --bg-2: #f8fbff;
-            --surface: rgba(255, 255, 255, .88);
-            --surface-strong: #ffffff;
-            --text: #101827;
+            --bg: #f4f6fb;
+            --surface: #ffffff;
+            --surface-soft: #f8f9fc;
+            --text: #172033;
             --muted: #667085;
-            --line: rgba(25, 39, 70, .12);
+            --line: #e5e8ef;
             --primary: #5b5cf6;
-            --primary-2: #8b5cf6;
-            --primary-3: #00a6d6;
-            --dark: #111827;
+            --primary-dark: #4647d9;
+            --primary-soft: #eeeeff;
             --success-bg: #ecfdf3;
             --success-line: #abefc6;
             --success-text: #067647;
@@ -635,646 +633,569 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post_string
             --note-bg: #fffaeb;
             --note-line: #fedf89;
             --note-text: #93370d;
-            --radius-lg: 24px;
-            --radius: 16px;
-            --tap: 52px;
-            --shadow: 0 18px 55px rgba(16, 24, 40, .12);
-            --shadow-soft: 0 10px 28px rgba(16, 24, 40, .08);
+            --radius: 18px;
+            --shadow: 0 12px 34px rgba(16, 24, 40, .08);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
         * { box-sizing: border-box; }
-        html { min-height: 100%; scroll-behavior: smooth; }
+        html { min-height: 100%; -webkit-text-size-adjust: 100%; }
         body {
             min-height: 100%;
             margin: 0;
             font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background:
-                radial-gradient(circle at 10% 0%, rgba(91, 92, 246, .22), transparent 22rem),
-                radial-gradient(circle at 95% 8%, rgba(0, 166, 214, .18), transparent 22rem),
-                linear-gradient(135deg, var(--bg), var(--bg-2) 58%, #fff7ed);
+            background: linear-gradient(180deg, #f8f9ff 0, var(--bg) 320px);
             color: var(--text);
-            padding-bottom: calc(18px + var(--safe-bottom));
-            -webkit-text-size-adjust: 100%;
         }
-        body::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            background-image: linear-gradient(rgba(16, 24, 40, .032) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 24, 40, .032) 1px, transparent 1px);
-            background-size: 38px 38px;
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,.5), transparent 62%);
+        button, input, select, textarea { font: inherit; }
+        button { touch-action: manipulation; }
+        .app-shell { width: min(100%, 1240px); margin: 0 auto; padding: 16px 12px calc(104px + var(--safe-bottom)); }
+        .app-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 8px 4px 18px;
         }
-        .wrap {
-            position: relative;
-            z-index: 1;
-            width: min(100%, 1180px);
-            margin: 0 auto;
-            padding: 12px 10px calc(28px + var(--safe-bottom));
-        }
+        .brand-kicker { margin: 0 0 4px; color: var(--primary-dark); font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+        h1 { margin: 0; font-size: clamp(28px, 7vw, 42px); line-height: 1.02; letter-spacing: -.04em; }
+        .header-desc { max-width: 650px; margin: 8px 0 0; color: var(--muted); line-height: 1.5; }
+        .header-link { flex: 0 0 auto; color: var(--primary-dark); font-weight: 800; text-decoration: none; padding: 10px 0; }
         .card {
-            position: relative;
-            overflow: hidden;
             background: var(--surface);
-            border: 1px solid rgba(255, 255, 255, .72);
-            border-radius: var(--radius-lg);
-            padding: 16px;
-            margin: 0 0 14px;
-            box-shadow: var(--shadow-soft);
-            backdrop-filter: blur(16px);
-        }
-        .card::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            pointer-events: none;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,.86);
-        }
-        .hero-card {
-            padding: 18px;
-            background:
-                linear-gradient(135deg, rgba(255,255,255,.96), rgba(255,255,255,.76)),
-                radial-gradient(circle at 95% 14%, rgba(91,92,246,.20), transparent 18rem);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
             box-shadow: var(--shadow);
         }
-        .hero-card::before {
-            content: "";
-            position: absolute;
-            top: -118px;
-            right: -128px;
-            width: 260px;
-            height: 260px;
-            border-radius: 999px;
-            background: conic-gradient(from 160deg, rgba(91,92,246,.16), rgba(0,166,214,.18), rgba(139,92,246,.14), rgba(91,92,246,.16));
-            filter: blur(2px);
-        }
-        h1, h2 { letter-spacing: -.035em; }
-        h1 { position: relative; font-size: clamp(30px, 10vw, 50px); line-height: .98; margin: 0 0 8px; }
-        h2 { font-size: clamp(22px, 7vw, 30px); line-height: 1.05; margin: 0 0 8px; }
-        p { line-height: 1.52; }
-        form.voice-form { display: flex; flex-direction: column; }
-        label { display: block; font-weight: 850; margin: 14px 0 7px; color: #182230; }
-        textarea, input, select {
-            width: 100%;
-            min-height: var(--tap);
-            border: 1px solid rgba(16, 24, 40, .14);
-            border-radius: 16px;
-            padding: 14px 15px;
-            font-size: 16px;
-            background: rgba(255, 255, 255, .92);
-            color: var(--text);
-            box-shadow: inset 0 1px 1px rgba(16, 24, 40, .03);
-            outline: none;
-            transition: border-color .18s ease, box-shadow .18s ease, background .18s ease, transform .18s ease;
-        }
-        textarea {
-            min-height: clamp(210px, 42dvh, 420px);
-            resize: vertical;
-            line-height: 1.52;
-            scroll-margin-bottom: 110px;
-        }
-        .dialogue-textarea { min-height: clamp(230px, 46dvh, 460px); }
-        textarea:focus, input:focus, select:focus {
-            border-color: rgba(91, 92, 246, .72);
-            box-shadow: 0 0 0 4px rgba(91, 92, 246, .12), inset 0 1px 1px rgba(16,24,40,.03);
-            background: #fff;
-        }
-        audio { width: 100%; margin-top: 14px; filter: drop-shadow(0 12px 20px rgba(16,24,40,.08)); }
-        button, .button {
-            min-height: var(--tap);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 9px;
-            border: 0;
-            border-radius: 16px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-2));
-            color: #fff;
-            padding: 14px 18px;
-            font-weight: 900;
-            font-size: 16px;
-            cursor: pointer;
-            text-decoration: none;
-            box-shadow: 0 13px 26px rgba(91, 92, 246, .24);
-            transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
-            touch-action: manipulation;
-        }
-        button:hover, .button:hover { transform: translateY(-1px); box-shadow: 0 16px 32px rgba(91, 92, 246, .30); filter: saturate(1.06); }
-        button:active, .button:active { transform: translateY(0); }
-        button.secondary, .button.secondary { background: linear-gradient(135deg, #101827, #344054); box-shadow: 0 13px 24px rgba(16,24,40,.20); }
-        .actions { display: flex; gap: 10px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
-        .utility-actions { margin-top: 10px; }
-        .submit-zone {
-            position: sticky;
-            bottom: calc(10px + var(--safe-bottom));
-            z-index: 20;
-            align-items: stretch;
-            margin: 18px -4px 4px;
-            padding: 10px;
-            border: 1px solid rgba(91, 92, 246, .16);
-            border-radius: 22px;
-            background: rgba(255, 255, 255, .84);
-            backdrop-filter: blur(18px);
-            box-shadow: 0 18px 42px rgba(16, 24, 40, .18);
-        }
-        .submit-zone button, .submit-zone .button { width: 100%; min-height: 58px; font-size: 17px; }
-        .grid, .grid2 { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: end; }
-        .dialogue-form > label[for="dialogue_text"] { order: 1; }
-        .dialogue-form > #dialogue_text { order: 2; }
-        .dialogue-form > .utility-actions { order: 3; }
-        .dialogue-form > .dialogue-voices { order: 4; }
-        .dialogue-form > .submit-zone { order: 5; }
-        .dialogue-form > .dialogue-settings { order: 6; }
-        .dialogue-form > .dialogue-pause { order: 7; }
-        .dialogue-form > .hint { order: 8; }
-        .dialogue-form > .advanced-settings { order: 9; }
-        .single-form > label[for="text"] { order: 1; }
-        .single-form > #text { order: 2; }
-        .single-form > .utility-actions { order: 3; }
-        .single-form > .tag-panel { order: 4; }
-        .single-form > .single-settings { order: 5; }
-        .single-form > .custom-voice { order: 6; }
-        .single-form > .submit-zone { order: 7; }
-        .single-form > .advanced-settings { order: 8; }
-        .single-form > .hint { order: 9; }
-        .muted { color: var(--muted); margin-top: 0; }
-        .small { color: var(--muted); font-size: 13px; line-height: 1.45; }
-        .alert {
-            border-radius: 18px;
-            padding: 13px 14px;
-            margin-top: 12px;
-            border: 1px solid transparent;
-            box-shadow: 0 8px 20px rgba(16,24,40,.05);
-        }
+        .status-stack { display: grid; gap: 10px; margin-bottom: 14px; }
+        .alert { border: 1px solid transparent; border-radius: 14px; padding: 12px 14px; line-height: 1.45; }
         .ok { background: var(--success-bg); border-color: var(--success-line); color: var(--success-text); }
         .error { background: var(--error-bg); border-color: var(--error-line); color: var(--error-text); white-space: pre-wrap; }
         .note { background: var(--note-bg); border-color: var(--note-line); color: var(--note-text); }
+        .result-card { padding: 16px; margin-bottom: 14px; }
+        .result-card audio { width: 100%; margin-top: 12px; }
+        .result-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+        .segments { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .segments a { color: var(--primary-dark); background: var(--primary-soft); padding: 8px 10px; border-radius: 999px; text-decoration: none; font-size: 13px; font-weight: 750; }
+
         .mode-tabs {
             position: sticky;
             top: 8px;
-            z-index: 25;
+            z-index: 40;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 6px;
-            padding: 6px;
-            margin: 0 0 14px;
-            border: 1px solid rgba(255,255,255,.70);
-            border-radius: 18px;
-            background: rgba(255,255,255,.86);
+            gap: 5px;
+            padding: 5px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(91,92,246,.16);
+            border-radius: 16px;
+            background: rgba(255,255,255,.94);
+            box-shadow: 0 10px 28px rgba(16,24,40,.10);
             backdrop-filter: blur(16px);
-            box-shadow: 0 12px 28px rgba(16,24,40,.10);
         }
         .mode-tab {
+            min-height: 50px;
+            border: 0;
+            border-radius: 12px;
+            background: transparent;
+            color: #4b5565;
+            font-weight: 850;
+            cursor: pointer;
+        }
+        .mode-tab small { display: block; margin-top: 1px; font-size: 11px; font-weight: 650; opacity: .72; }
+        .mode-tab.is-active { color: #fff; background: linear-gradient(135deg, var(--primary), #7c5cf5); box-shadow: 0 8px 18px rgba(91,92,246,.25); }
+        .tab-panel[hidden] { display: none !important; }
+
+        .workspace { display: grid; gap: 14px; }
+        .editor-card, .settings-card { padding: 16px; }
+        .section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+        .section-title { margin: 0; font-size: 21px; line-height: 1.2; letter-spacing: -.025em; }
+        .section-desc { margin: 5px 0 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+        label { display: block; margin: 14px 0 7px; font-weight: 800; color: #273043; }
+        textarea, input, select {
+            width: 100%;
+            min-height: 50px;
+            border: 1px solid #d7dce6;
+            border-radius: 13px;
+            background: #fff;
+            color: var(--text);
+            padding: 13px 14px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color .16s ease, box-shadow .16s ease;
+        }
+        textarea { min-height: 280px; line-height: 1.55; resize: vertical; }
+        .dialogue-textarea { min-height: 330px; }
+        textarea:focus, input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(91,92,246,.12); }
+        .counter-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 7px; color: var(--muted); font-size: 12px; }
+
+        .editor-tools {
+            margin-top: 12px;
+            border: 1px solid var(--line);
+            border-radius: 15px;
+            background: var(--surface-soft);
+            overflow: hidden;
+        }
+        .quick-tools { display: flex; gap: 8px; overflow-x: auto; padding: 10px; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+        .tool-btn {
+            flex: 0 0 auto;
+            min-height: 42px;
+            border: 1px solid #dcdffd;
+            border-radius: 999px;
+            background: #fff;
+            color: #3f42c9;
+            padding: 9px 12px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: none;
+        }
+        .tool-btn.speaker-m { color: #175cd3; border-color: #b2ccff; background: #eff8ff; }
+        .tool-btn.speaker-f { color: #c11574; border-color: #fcceee; background: #fdf2fa; }
+        .tool-btn.utility { color: #344054; border-color: #d0d5dd; }
+        .tool-btn:active { transform: translateY(1px); }
+        .tag-library { border-top: 1px solid var(--line); }
+        .tag-library summary {
             min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 0 12px;
+            cursor: pointer;
+            font-weight: 800;
+            list-style: none;
+        }
+        .tag-library summary::-webkit-details-marker { display: none; }
+        .tag-library summary::after { content: "+"; font-size: 22px; color: var(--muted); }
+        .tag-library[open] summary::after { content: "−"; }
+        .tag-library-body { display: grid; gap: 14px; padding: 0 10px 12px; }
+        .tag-group-title { margin-bottom: 7px; color: #475467; font-size: 13px; font-weight: 850; }
+        .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+        .insert-chip {
+            min-height: 40px;
+            border: 1px solid #dcdffd;
+            border-radius: 999px;
+            background: #fff;
+            color: #3f42c9;
+            padding: 8px 11px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .preset-list { display: grid; gap: 8px; }
+        .preset-btn {
+            width: 100%;
+            min-height: 48px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+            color: var(--text);
+            padding: 10px 12px;
+            text-align: left;
+            cursor: pointer;
+        }
+        .preset-btn span { color: var(--muted); font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .utility-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .text-button {
+            min-height: 42px;
+            border: 1px solid #d0d5dd;
+            border-radius: 11px;
+            background: #fff;
+            color: #344054;
+            padding: 9px 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .helper-text { color: var(--muted); font-size: 12px; line-height: 1.45; }
+
+        .settings-card h3 { margin: 0 0 4px; font-size: 18px; }
+        .settings-card .section-desc { margin-bottom: 8px; }
+        .settings-grid { display: grid; gap: 10px; }
+        .custom-voice { display: none; }
+        .custom-voice.is-visible { display: block; }
+        .inline-help {
+            margin-top: 14px;
+            border-radius: 13px;
+            background: #f8f9fc;
+            border: 1px solid var(--line);
+            padding: 12px;
+            color: #475467;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .guide-lines { display: grid; gap: 10px; }
+        .guide-line { display: grid; gap: 5px; }
+        .guide-label { color: #344054; font-weight: 850; }
+        code {
+            display: block;
+            width: 100%;
+            border-radius: 9px;
+            background: var(--primary-soft);
+            color: #3f42c9;
+            padding: 7px 9px;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+            line-height: 1.45;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+        .advanced-settings { margin-top: 14px; border: 1px solid var(--line); border-radius: 13px; overflow: hidden; }
+        .advanced-settings summary { min-height: 48px; display: flex; align-items: center; padding: 0 12px; cursor: pointer; font-weight: 850; }
+        .advanced-content { padding: 0 12px 12px; }
+        .field-grid { display: grid; gap: 10px; }
+        .desktop-submit { display: none; }
+        .primary-button, .secondary-button, .download-button {
+            min-height: 52px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             border: 0;
-            border-radius: 14px;
-            color: #3538cd;
-            background: transparent;
-            text-decoration: none;
-            font-weight: 900;
-            font-size: 15px;
-            box-shadow: none;
-        }
-        .mode-tab.is-active {
-            background: linear-gradient(135deg, var(--primary), var(--primary-2));
-            color: #fff;
-            box-shadow: 0 10px 22px rgba(91,92,246,.24);
-        }
-        .tab-panel[hidden] { display: none; }
-        .mode-card { scroll-margin-top: 86px; }
-        .hint, .tag-panel, .advanced-settings {
-            margin-top: 14px;
-            padding: 14px;
-            border: 1px solid rgba(16, 24, 40, .10);
-            border-radius: 20px;
-            background: rgba(248, 250, 252, .82);
-            color: #344054;
-            line-height: 1.55;
-        }
-        .hint-rows { display: grid; gap: 8px; }
-        .hint-row { display: grid; gap: 5px; }
-        .hint-label { font-weight: 900; color: #182230; }
-        .advanced-settings { padding: 0; overflow: hidden; }
-        .advanced-settings summary {
-            min-height: var(--tap);
-            display: flex;
-            align-items: center;
-            padding: 0 14px;
+            border-radius: 13px;
+            padding: 12px 17px;
             font-weight: 900;
             cursor: pointer;
-            list-style-position: inside;
-            user-select: none;
-        }
-        .advanced-settings .advanced-content { padding: 0 14px 14px; }
-        code {
-            display: inline-block;
-            max-width: 100%;
-            background: rgba(91, 92, 246, .10);
-            color: #3538cd;
-            border: 1px solid rgba(91, 92, 246, .12);
-            border-radius: 9px;
-            padding: 3px 7px;
-            margin: 1px 0;
-            line-height: 1.35;
-            vertical-align: baseline;
-            overflow-wrap: anywhere;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-        }
-        .custom-voice { display: none; }
-        .custom-voice.is-visible { display: block; }
-        .segments { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-        .segments a {
-            min-height: 42px;
-            display: inline-flex;
-            align-items: center;
-            color: #3538cd;
-            background: rgba(91,92,246,.09);
-            border: 1px solid rgba(91,92,246,.12);
-            padding: 8px 10px;
-            border-radius: 999px;
             text-decoration: none;
-            font-size: 13px;
-            font-weight: 800;
         }
-        .tag-panel-title { margin: 0 0 4px; font-weight: 900; font-size: 17px; color: #182230; }
-        .tag-panel-desc { margin: 0 0 12px; color: var(--muted); }
-        .tag-group { margin-top: 14px; }
-        .tag-group-title { font-weight: 900; margin-bottom: 8px; color: #344054; }
-        .chips { display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
-        .chip {
-            flex: 0 0 auto;
-            min-height: 44px;
-            width: auto;
-            background: rgba(91, 92, 246, .09);
-            color: #3538cd;
-            border: 1px solid rgba(91, 92, 246, .18);
-            padding: 9px 12px;
-            border-radius: 999px;
-            font-size: 14px;
-            box-shadow: none;
-            scroll-snap-align: start;
-            white-space: nowrap;
-        }
-        .chip:hover { box-shadow: 0 8px 18px rgba(91,92,246,.14); }
-        .chip.is-copied { background: #dcfae6; color: #067647; border-color: #75e0a7; }
-        .sample-row { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 10px; }
-        .sample-row code { padding: 8px 10px; line-height: 1.5; overflow-x: auto; }
-        .app-footer {
-            display: flex;
-            justify-content: space-between;
+        .primary-button { color: #fff; background: linear-gradient(135deg, var(--primary), #7c5cf5); box-shadow: 0 10px 22px rgba(91,92,246,.24); }
+        .secondary-button, .download-button { color: #fff; background: #1f2937; }
+        .desktop-submit .primary-button { width: 100%; margin-top: 14px; }
+
+        .mobile-action {
+            position: fixed;
+            left: 10px;
+            right: 10px;
+            bottom: calc(8px + var(--safe-bottom));
+            z-index: 60;
+            display: none;
             align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            padding: 6px 6px 18px;
-            color: rgba(52, 64, 84, .82);
-            font-size: 14px;
+            gap: 10px;
+            padding: 8px;
+            border: 1px solid rgba(91,92,246,.20);
+            border-radius: 17px;
+            background: rgba(255,255,255,.95);
+            box-shadow: 0 16px 44px rgba(16,24,40,.22);
+            backdrop-filter: blur(16px);
         }
-        .app-footer a {
-            color: #3538cd;
-            font-weight: 900;
-            text-decoration: none;
-            border-bottom: 1px solid rgba(53,56,205,.25);
+        .mobile-action.is-active { display: flex; }
+        .mobile-action .primary-button { width: 100%; min-height: 56px; }
+        .mobile-action-label { display: none; }
+        .login-card { max-width: 520px; padding: 18px; margin: 30px auto 0; }
+        .app-footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 22px 4px 8px; color: var(--muted); font-size: 13px; }
+        .app-footer a { color: var(--primary-dark); font-weight: 850; text-decoration: none; }
+
+        @media (min-width: 900px) {
+            .app-shell { padding: 26px 20px 36px; }
+            .mode-tabs { position: static; width: 420px; grid-template-columns: 1fr 1fr; margin-bottom: 18px; }
+            .workspace { grid-template-columns: minmax(0, 1fr) 360px; align-items: start; gap: 18px; }
+            .editor-card, .settings-card { padding: 22px; }
+            .settings-card { position: sticky; top: 18px; }
+            textarea { min-height: 420px; }
+            .dialogue-textarea { min-height: 470px; }
+            .quick-tools { flex-wrap: wrap; overflow: visible; }
+            .field-grid.two { grid-template-columns: 1fr 1fr; }
+            .desktop-submit { display: block; }
+            .mobile-action { display: none !important; }
+            .tag-library-body { grid-template-columns: repeat(2, minmax(0,1fr)); }
+            .tag-library-body .wide { grid-column: 1 / -1; }
         }
-        .app-footer a:hover { border-bottom-color: currentColor; }
-        @media (min-width: 821px) {
-            :root { --radius-lg: 28px; --tap: 48px; }
-            .wrap { padding: 34px 18px; }
-            .card { padding: 28px; margin-bottom: 22px; }
-            .hero-card { padding: 34px; }
-            .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-            .grid2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-            textarea { min-height: 260px; }
-            .dialogue-textarea { min-height: 230px; }
-            button, .button { font-size: 15px; min-height: 48px; }
-            .submit-zone {
-                position: static;
-                margin: 20px 0 0;
-                padding: 0;
-                border: 0;
-                border-radius: 0;
-                background: transparent;
-                backdrop-filter: none;
-                box-shadow: none;
-            }
-            .submit-zone button, .submit-zone .button { width: auto; min-height: 48px; font-size: 15px; }
-            .mode-tabs { position: static; display: inline-grid; grid-template-columns: 170px 170px; border-radius: 18px; margin-bottom: 22px; }
-            .mode-tab { min-width: 150px; }
-            .chips { flex-wrap: wrap; overflow: visible; }
-            .sample-row { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
-        }
-        @media (max-width: 420px) {
-            .wrap { padding-inline: 8px; }
-            .card { padding: 14px; border-radius: 22px; }
-            .hero-card { padding: 16px; }
-            h1 { font-size: 30px; }
-            .submit-zone { margin-inline: -2px; }
+        @media (max-width: 520px) {
+            .app-shell { padding-inline: 8px; }
+            .app-header { padding-inline: 4px; }
+            .header-link { display: none; }
+            .editor-card, .settings-card { padding: 14px; }
+            .section-title { font-size: 19px; }
+            textarea { min-height: 250px; }
+            .dialogue-textarea { min-height: 300px; }
             .mode-tab { font-size: 14px; }
+            .preset-btn { display: block; }
+            .preset-btn span { display: block; margin-top: 5px; white-space: normal; }
         }
         @media (prefers-color-scheme: dark) {
-            :root { color-scheme: dark; --surface: rgba(15, 23, 42, .84); --text: #eef2ff; --muted: #aab3c5; --line: rgba(255,255,255,.12); }
-            body { background: radial-gradient(circle at 8% 4%, rgba(91,92,246,.30), transparent 30rem), radial-gradient(circle at 88% 8%, rgba(0,166,214,.22), transparent 30rem), linear-gradient(135deg, #020617, #0b1020 58%, #111827); color: var(--text); }
-            body::before { background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px); }
-            .card { background: var(--surface); border-color: rgba(255,255,255,.10); box-shadow: 0 22px 70px rgba(0,0,0,.28); }
-            .hero-card { background: linear-gradient(135deg, rgba(15,23,42,.92), rgba(15,23,42,.72)), radial-gradient(circle at 90% 20%, rgba(91,92,246,.28), transparent 24rem); }
-            label, .tag-panel-title { color: #f8fafc; }
-            textarea, input, select { background: rgba(2, 6, 23, .72); color: #f8fafc; border-color: rgba(255,255,255,.14); }
-            textarea:focus, input:focus, select:focus { background: rgba(2,6,23,.95); }
-            .muted, .small, .tag-panel-desc { color: var(--muted); }
-            .hint, .tag-panel, .advanced-settings { background: rgba(2, 6, 23, .48); border-color: rgba(255,255,255,.10); color: #cbd5e1; }
-            .mode-tabs { background: rgba(15,23,42,.86); border-color: rgba(255,255,255,.12); }
-            .mode-tab { color: #e0e7ff; }
-            .mode-tab.is-active { color: #fff; }
-            .hint-label { color: #f8fafc; }
-            .submit-zone { background: rgba(15, 23, 42, .82); border-color: rgba(129,140,248,.22); }
-            .tag-group-title { color: #e2e8f0; }
-            code { background: rgba(129,140,248,.14); color: #c7d2fe; border-color: rgba(129,140,248,.20); }
-            .chip, .segments a { background: rgba(129,140,248,.14); color: #e0e7ff; border-color: rgba(129,140,248,.22); }
-            .chip.is-copied { background: rgba(6, 78, 59, .88); border-color: #10b981; color: #d1fae5; }
-            button.secondary, .button.secondary { background: linear-gradient(135deg, #334155, #0f172a); color: #fff; }
-            .note { background: rgba(69,26,3,.72); border-color: rgba(146,64,14,.8); color: #fde68a; }
-            .ok { background: rgba(6,78,59,.55); border-color: rgba(16,185,129,.55); color: #d1fae5; }
-            .error { background: rgba(127,29,29,.55); border-color: rgba(248,113,113,.45); color: #fee2e2; }
-            .app-footer { color: rgba(203,213,225,.78); }
-            .app-footer a { color: #c7d2fe; border-bottom-color: rgba(199,210,254,.30); }
+            :root {
+                color-scheme: dark;
+                --bg: #0c1220;
+                --surface: #111827;
+                --surface-soft: #161f2f;
+                --text: #f3f4f6;
+                --muted: #aab2c0;
+                --line: #293244;
+                --primary-soft: #22234f;
+            }
+            body { background: linear-gradient(180deg, #11152a 0, #0c1220 320px); }
+            .mode-tabs, .mobile-action { background: rgba(17,24,39,.95); }
+            textarea, input, select, .tool-btn, .insert-chip, .preset-btn, .text-button { background: #0f172a; color: #f3f4f6; border-color: #344054; }
+            label, .guide-label, .section-title { color: #f3f4f6; }
+            .inline-help { background: #161f2f; color: #cbd5e1; }
+            .tool-btn.speaker-m { background: #102a4d; color: #b2ddff; border-color: #175cd3; }
+            .tool-btn.speaker-f { background: #4a1235; color: #fcceee; border-color: #c11574; }
+            .insert-chip { color: #c7d2fe; }
         }
-</style>
+    </style>
 </head>
 <body>
-<div class="wrap">
-    <div class="card hero-card">
-        <h1>Fish Audio TTS</h1>
-        <p class="muted">Озвучка текста, native multi-speaker диалоги Fish Audio и резервная склейка реплик.</p>
+<div class="app-shell">
+    <header class="app-header">
+        <div>
+            <p class="brand-kicker">Fish Audio</p>
+            <h1>Студия озвучки</h1>
+            <p class="header-desc">Один голос для дикторского текста или полноценный диалог с двумя голосами. Каждый режим — в своей вкладке и со своими инструментами.</p>
+        </div>
+        <a class="header-link" href="https://it-uu.ru" target="_blank" rel="noopener noreferrer">it-uu.ru</a>
+    </header>
 
-        <?php foreach ($errors as $error): ?>
-            <div class="alert error"><?= h($error) ?></div>
-        <?php endforeach; ?>
-        <?php foreach ($dialogueNotes as $note): ?>
-            <div class="alert note"><?= h($note) ?></div>
-        <?php endforeach; ?>
+    <?php if ($errors || $dialogueNotes): ?>
+        <div class="status-stack">
+            <?php foreach ($errors as $error): ?><div class="alert error"><?= h($error) ?></div><?php endforeach; ?>
+            <?php foreach ($dialogueNotes as $note): ?><div class="alert note"><?= h($note) ?></div><?php endforeach; ?>
+        </div>
+    <?php endif; ?>
 
-        <?php if (!$isLoggedIn): ?>
+    <?php if (!$isLoggedIn): ?>
+        <div class="card login-card">
+            <h2 class="section-title">Вход</h2>
             <form method="post">
                 <label for="login_password">Пароль</label>
                 <input id="login_password" name="login_password" type="password" autocomplete="current-password" autofocus>
-                <div class="actions submit-zone"><button type="submit">Войти</button></div>
+                <button class="primary-button" style="width:100%;margin-top:14px" type="submit">Войти</button>
             </form>
-        <?php else: ?>
-            <?php if (!file_exists($configPath)): ?>
-                <div class="alert error">Нет config.php. Скопируйте config.example.php в config.php и вставьте Fish Audio API key.</div>
-            <?php endif; ?>
+        </div>
+    <?php else: ?>
+        <?php if (!file_exists($configPath)): ?>
+            <div class="alert error" style="margin-bottom:14px">Нет config.php. Скопируйте config.example.php в config.php и вставьте Fish Audio API key.</div>
+        <?php endif; ?>
 
-            <?php if ($success): ?>
+        <?php if ($success): ?>
+            <section class="card result-card">
                 <div class="alert ok"><?= h($success) ?></div>
                 <?php if ($audioUrl): ?>
                     <audio controls src="<?= h($audioUrl) ?>"></audio>
-                    <div class="actions">
-                        <a class="button secondary" href="<?= h($audioUrl) ?>" download><?= h((string)$audioLabel ?: 'Скачать аудио') ?></a>
-                    </div>
+                    <div class="result-actions"><a class="download-button" href="<?= h($audioUrl) ?>" download><?= h((string)$audioLabel ?: 'Скачать аудио') ?></a></div>
                 <?php endif; ?>
                 <?php if ($segmentLinks): ?>
-                    <div class="hint">
-                        <strong>Отдельные реплики:</strong>
-                        <div class="segments">
-                            <?php foreach ($segmentLinks as $link): ?>
-                                <a href="<?= h($link['url']) ?>" download><?= h($link['label']) ?></a>
-                            <?php endforeach; ?>
-                        </div>
+                    <div class="segments">
+                        <?php foreach ($segmentLinks as $link): ?><a href="<?= h($link['url']) ?>" download><?= h($link['label']) ?></a><?php endforeach; ?>
                     </div>
                 <?php endif; ?>
-            <?php endif; ?>
-
-            <div class="hint compact-hint">
-                <div class="hint-rows">
-                    <div class="hint-row"><span class="hint-label">Формат диалога</span><span><code>М: текст мужчины</code> или <code>Ж: текст женщины</code></span></div>
-                    <div class="hint-row"><span class="hint-label">Fish native</span><span>Сайт сам превращает реплики в <code>&lt;|speaker:0|&gt;</code> и <code>&lt;|speaker:1|&gt;</code>, а <code>reference_id</code> отправляет массивом из двух голосов.</span></div>
-                    <div class="hint-row"><span class="hint-label">Резерв</span><span>Склейка реплик остаётся на случай ошибки native-режима. ffmpeg сейчас: <strong><?= $ffmpegStatus ? 'доступен' : 'не найден/запрещён' ?></strong>.</span></div>
-                </div>
-            </div>
+            </section>
         <?php endif; ?>
-    </div>
 
-    <?php if ($isLoggedIn): ?>
-    <div class="mode-tabs" role="tablist" aria-label="Режимы озвучки">
-        <button type="button" class="mode-tab <?= $activeTab === 'dialogue' ? 'is-active' : '' ?>" role="tab" aria-selected="<?= $activeTab === 'dialogue' ? 'true' : 'false' ?>" aria-controls="dialogue-card" data-tab="dialogue">Диалог</button>
-        <button type="button" class="mode-tab <?= $activeTab === 'single' ? 'is-active' : '' ?>" role="tab" aria-selected="<?= $activeTab === 'single' ? 'true' : 'false' ?>" aria-controls="single-card" data-tab="single">Один голос</button>
-    </div>
+        <nav class="mode-tabs" role="tablist" aria-label="Режим озвучки">
+            <button type="button" class="mode-tab <?= $activeTab === 'dialogue' ? 'is-active' : '' ?>" role="tab" aria-selected="<?= $activeTab === 'dialogue' ? 'true' : 'false' ?>" aria-controls="dialogue-panel" data-tab="dialogue">Диалог<small>два голоса</small></button>
+            <button type="button" class="mode-tab <?= $activeTab === 'single' ? 'is-active' : '' ?>" role="tab" aria-selected="<?= $activeTab === 'single' ? 'true' : 'false' ?>" aria-controls="single-panel" data-tab="single">Один голос<small>дикторский текст</small></button>
+        </nav>
 
-    <div class="card mode-card tab-panel <?= $activeTab === 'dialogue' ? 'is-active' : '' ?>" id="dialogue-card" role="tabpanel" data-tab-panel="dialogue" <?= $activeTab === 'dialogue' ? '' : 'hidden' ?>>
-        <h2>Диалог: мужчина + женщина</h2>
-        <p class="muted">По умолчанию сначала используется native multi-speaker Fish Audio — один запрос и один цельный файл. Если API вернёт ошибку, режим «Авто» попробует старую склейку реплик.</p>
-        <form method="post" class="voice-form dialogue-form">
-            <input type="hidden" name="action" value="synthesize_dialogue">
-            <input type="hidden" name="active_tab" value="dialogue">
+        <section id="dialogue-panel" class="tab-panel" role="tabpanel" data-tab-panel="dialogue" <?= $activeTab === 'dialogue' ? '' : 'hidden' ?>>
+            <form id="dialogue-form" method="post">
+                <input type="hidden" name="action" value="synthesize_dialogue">
+                <input type="hidden" name="active_tab" value="dialogue">
+                <div class="workspace">
+                    <main class="card editor-card">
+                        <div class="section-head">
+                            <div>
+                                <h2 class="section-title">Сценарий диалога</h2>
+                                <p class="section-desc">Каждая реплика начинается с <strong>М:</strong> или <strong>Ж:</strong>. Теги и готовые фразы вставляются прямо в это поле в позицию курсора.</p>
+                            </div>
+                        </div>
+                        <textarea id="dialogue_text" class="dialogue-textarea js-counted" name="dialogue_text" maxlength="30000" required><?= h($lastDialogueText) ?></textarea>
+                        <div class="counter-row"><span>Формат: М: текст / Ж: текст</span><span data-counter-for="dialogue_text"></span></div>
 
-            <label for="dialogue_text">Сценарий диалога</label>
-            <textarea id="dialogue_text" class="dialogue-textarea" name="dialogue_text" required><?= h($lastDialogueText) ?></textarea>
+                        <div class="editor-tools" aria-label="Инструменты сценария">
+                            <div class="quick-tools">
+                                <button type="button" class="tool-btn speaker-m js-insert-line" data-target="dialogue_text" data-insert="М: ">М: реплика</button>
+                                <button type="button" class="tool-btn speaker-f js-insert-line" data-target="dialogue_text" data-insert="Ж: ">Ж: реплика</button>
+                                <button type="button" class="tool-btn js-insert" data-target="dialogue_text" data-insert="[calm] ">[calm]</button>
+                                <button type="button" class="tool-btn js-insert" data-target="dialogue_text" data-insert="[pause] ">[pause]</button>
+                                <button type="button" class="tool-btn js-insert" data-target="dialogue_text" data-insert="[English]">[English]</button>
+                                <button type="button" class="tool-btn utility js-tag-english" data-target="dialogue_text">Пометить латиницу</button>
+                            </div>
+                            <details class="tag-library">
+                                <summary>Все интонации, эффекты и заготовки</summary>
+                                <div class="tag-library-body">
+                                    <div>
+                                        <div class="tag-group-title">Интонация</div>
+                                        <div class="chips">
+                                            <?php foreach (['[calm] ', '[confident] ', '[excited] ', '[curious] ', '[sarcastic] ', '[sad] ', '[surprised] ', '[angry] ', '[panicked] ', '[terrified] '] as $tag): ?>
+                                                <button type="button" class="insert-chip js-insert" data-target="dialogue_text" data-insert="<?= h($tag) ?>"><?= h(trim($tag)) ?></button>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="tag-group-title">Подача и звуки</div>
+                                        <div class="chips">
+                                            <?php foreach (['[whisper] ', '[emphasis] ', '[softly] ', '[speaking slowly] ', '[teacher tone] ', '[laugh] ', '[sigh] ', '[gasp] ', '[inhale] ', '[exhale] ', '[pause] '] as $tag): ?>
+                                                <button type="button" class="insert-chip js-insert" data-target="dialogue_text" data-insert="<?= h($tag) ?>"><?= h(trim($tag)) ?></button>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                    <div class="wide">
+                                        <div class="tag-group-title">Готовые заготовки для диалога</div>
+                                        <div class="preset-list">
+                                            <button type="button" class="preset-btn js-insert-block" data-target="dialogue_text" data-insert="М: [calm] Привет. Сегодня разберём слово [English]rainforest.&#10;Ж: [curious] А почему его нельзя переводить дословно?&#10;"><strong>Учебный диалог</strong><span>вставить 2 реплики</span></button>
+                                            <button type="button" class="preset-btn js-insert-block" data-target="dialogue_text" data-insert="М: [confident] Добрый день! Чем можем помочь?&#10;Ж: [calm] Нужна консультация по автоматизации бизнеса.&#10;"><strong>Деловой диалог</strong><span>вставить 2 реплики</span></button>
+                                            <button type="button" class="preset-btn js-insert-block" data-target="dialogue_text" data-insert="М: [terrified, shouting] Бежим! Он уже здесь!&#10;Ж: [panicked] Где выход?! Быстрее!&#10;"><strong>Паника / персонажи</strong><span>вставить 2 реплики</span></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                    </main>
 
-            <div class="grid2 dialogue-voices">
-                <div>
-                    <label for="male_voice_preset">Голос мужчины / speaker:0</label>
-                    <select id="male_voice_preset" name="male_voice_preset"><?= render_voice_options($voicePresets, $selectedMalePreset, false) ?></select>
-                    <div id="customMaleVoiceWrap" class="custom-voice <?= $selectedMalePreset === '__custom__' ? 'is-visible' : '' ?>">
-                        <label for="custom_male_reference_id">Свой Voice ID мужчины</label>
-                        <input id="custom_male_reference_id" name="custom_male_reference_id" value="<?= h($customMaleReferenceId) ?>">
-                    </div>
+                    <aside class="card settings-card">
+                        <h3>Голоса и параметры</h3>
+                        <p class="section-desc">Мужчина — speaker:0, женщина — speaker:1.</p>
+                        <label for="male_voice_preset">Мужской голос</label>
+                        <select id="male_voice_preset" name="male_voice_preset"><?= render_voice_options($voicePresets, $selectedMalePreset, false) ?></select>
+                        <div id="customMaleVoiceWrap" class="custom-voice <?= $selectedMalePreset === '__custom__' ? 'is-visible' : '' ?>">
+                            <label for="custom_male_reference_id">Voice ID мужчины</label>
+                            <input id="custom_male_reference_id" name="custom_male_reference_id" value="<?= h($customMaleReferenceId) ?>">
+                        </div>
+                        <label for="female_voice_preset">Женский голос</label>
+                        <select id="female_voice_preset" name="female_voice_preset"><?= render_voice_options($voicePresets, $selectedFemalePreset, false) ?></select>
+                        <div id="customFemaleVoiceWrap" class="custom-voice <?= $selectedFemalePreset === '__custom__' ? 'is-visible' : '' ?>">
+                            <label for="custom_female_reference_id">Voice ID женщины</label>
+                            <input id="custom_female_reference_id" name="custom_female_reference_id" value="<?= h($customFemaleReferenceId) ?>">
+                        </div>
+                        <div class="field-grid two">
+                            <div><label for="dialogue_mode">Режим</label><select id="dialogue_mode" name="dialogue_mode"><option value="auto" <?= $dialogueMode === 'auto' ? 'selected' : '' ?>>Авто: native → склейка</option><option value="native" <?= $dialogueMode === 'native' ? 'selected' : '' ?>>Только native</option><option value="segments" <?= $dialogueMode === 'segments' ? 'selected' : '' ?>>Только склейка</option></select></div>
+                            <div><label for="dialogue_output_format">Формат</label><select id="dialogue_output_format" name="dialogue_output_format"><option value="mp3" <?= $dialogueOutputFormat === 'mp3' ? 'selected' : '' ?>>MP3</option><option value="wav" <?= $dialogueOutputFormat === 'wav' ? 'selected' : '' ?>>WAV</option></select></div>
+                        </div>
+                        <label for="model_dialogue">Модель</label>
+                        <select id="model_dialogue" name="model"><?php foreach (['s2.1-pro-free', 's2.1-pro', 's2-pro', 's1'] as $m): ?><option value="<?= h($m) ?>" <?= $selectedModel === $m ? 'selected' : '' ?>><?= h($m) ?></option><?php endforeach; ?></select>
+                        <label for="pause_ms">Пауза при резервной склейке, мс</label>
+                        <input id="pause_ms" name="pause_ms" type="number" min="0" max="3000" step="50" value="<?= h(post_string('pause_ms', '350')) ?>">
+
+                        <?php $controlScope = 'dialogue'; include __DIR__ . '/shared_controls.php'; unset($controlScope); ?>
+
+                        <div class="inline-help guide-lines">
+                            <div class="guide-line"><span class="guide-label">Пишите так</span><code>М: [calm] Привет.&#10;Ж: [excited] Начинаем!</code></div>
+                            <div class="guide-line"><span class="guide-label">Fish получит</span><code>&lt;|speaker:0|&gt;...&#10;&lt;|speaker:1|&gt;...</code></div>
+                            <div class="helper-text">ffmpeg: <strong><?= $ffmpegStatus ? 'доступен' : 'не найден' ?></strong>. Для native-диалога он не нужен.</div>
+                        </div>
+                        <div class="desktop-submit"><button class="primary-button" type="submit">Озвучить диалог</button></div>
+                    </aside>
                 </div>
-                <div>
-                    <label for="female_voice_preset">Голос женщины / speaker:1</label>
-                    <select id="female_voice_preset" name="female_voice_preset"><?= render_voice_options($voicePresets, $selectedFemalePreset, false) ?></select>
-                    <div id="customFemaleVoiceWrap" class="custom-voice <?= $selectedFemalePreset === '__custom__' ? 'is-visible' : '' ?>">
-                        <label for="custom_female_reference_id">Свой Voice ID женщины</label>
-                        <input id="custom_female_reference_id" name="custom_female_reference_id" value="<?= h($customFemaleReferenceId) ?>">
-                    </div>
+            </form>
+        </section>
+
+        <section id="single-panel" class="tab-panel" role="tabpanel" data-tab-panel="single" <?= $activeTab === 'single' ? '' : 'hidden' ?>>
+            <form id="single-form" method="post">
+                <input type="hidden" name="action" value="synthesize">
+                <input type="hidden" name="active_tab" value="single">
+                <div class="workspace">
+                    <main class="card editor-card">
+                        <div class="section-head">
+                            <div>
+                                <h2 class="section-title">Текст одним голосом</h2>
+                                <p class="section-desc">Дикторская озвучка, автоответчик, статья или аудиокнига. Все кнопки ниже вставляют теги именно в это поле.</p>
+                            </div>
+                        </div>
+                        <textarea id="text" class="js-counted" name="text" maxlength="20000" required><?= h($lastText) ?></textarea>
+                        <div class="counter-row"><span>До 20 000 символов</span><span data-counter-for="text"></span></div>
+
+                        <div class="editor-tools" aria-label="Инструменты текста">
+                            <div class="quick-tools">
+                                <button type="button" class="tool-btn js-insert" data-target="text" data-insert="[calm] ">[calm]</button>
+                                <button type="button" class="tool-btn js-insert" data-target="text" data-insert="[confident] ">[confident]</button>
+                                <button type="button" class="tool-btn js-insert" data-target="text" data-insert="[pause] ">[pause]</button>
+                                <button type="button" class="tool-btn js-insert" data-target="text" data-insert="[English]">[English]</button>
+                                <button type="button" class="tool-btn utility js-tag-english" data-target="text">Пометить латиницу</button>
+                            </div>
+                            <details class="tag-library">
+                                <summary>Все интонации, эффекты и заготовки</summary>
+                                <div class="tag-library-body">
+                                    <div>
+                                        <div class="tag-group-title">Интонация</div>
+                                        <div class="chips">
+                                            <?php foreach (['[calm] ', '[confident] ', '[excited] ', '[curious] ', '[sarcastic] ', '[sad] ', '[surprised] ', '[angry] ', '[panicked] ', '[terrified] '] as $tag): ?>
+                                                <button type="button" class="insert-chip js-insert" data-target="text" data-insert="<?= h($tag) ?>"><?= h(trim($tag)) ?></button>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="tag-group-title">Подача и звуки</div>
+                                        <div class="chips">
+                                            <?php foreach (['[whisper] ', '[emphasis] ', '[softly] ', '[speaking slowly] ', '[teacher tone] ', '[professional narrator, calm, confident] ', '[laugh] ', '[sigh] ', '[gasp] ', '[inhale] ', '[exhale] ', '[pause] '] as $tag): ?>
+                                                <button type="button" class="insert-chip js-insert" data-target="text" data-insert="<?= h($tag) ?>"><?= h(trim($tag)) ?></button>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                    <div class="wide">
+                                        <div class="tag-group-title">Готовые заготовки</div>
+                                        <div class="preset-list">
+                                            <button type="button" class="preset-btn js-insert-block" data-target="text" data-insert="[professional narrator, calm, confident] &#10;"><strong>Новостной диктор</strong><span>вставить подачу</span></button>
+                                            <button type="button" class="preset-btn js-insert-block" data-target="text" data-insert="[calm] Здравствуйте! Вы позвонили в «Ай-ти-тек». [pause]&#10;&#10;Мы помогаем бизнесу с техникой, сайтами, серверами и автоматизацией. [pause]&#10;&#10;Пожалуйста, дождитесь ответа специалиста.&#10;"><strong>Автоответчик</strong><span>вставить пример</span></button>
+                                            <button type="button" class="preset-btn js-insert-block" data-target="text" data-insert="[terrified, screaming] А-а-а! Нет! Не подходи!&#10;"><strong>Крик в ужасе</strong><span>вставить пример</span></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                    </main>
+
+                    <aside class="card settings-card">
+                        <h3>Голос и параметры</h3>
+                        <p class="section-desc">Выберите голос и формат результата.</p>
+                        <label for="voice_preset">Голос</label>
+                        <select id="voice_preset" name="voice_preset"><?= render_voice_options($voicePresets, $selectedVoicePreset, true) ?></select>
+                        <div id="customVoiceWrap" class="custom-voice <?= $selectedVoicePreset === '__custom__' ? 'is-visible' : '' ?>">
+                            <label for="custom_reference_id">Свой Voice ID</label>
+                            <input id="custom_reference_id" name="custom_reference_id" value="<?= h($customReferenceId) ?>">
+                        </div>
+                        <div class="field-grid two">
+                            <div><label for="model_single">Модель</label><select id="model_single" name="model"><?php foreach (['s2.1-pro-free', 's2.1-pro', 's2-pro', 's1'] as $m): ?><option value="<?= h($m) ?>" <?= $selectedModel === $m ? 'selected' : '' ?>><?= h($m) ?></option><?php endforeach; ?></select></div>
+                            <div><label for="format">Формат</label><select id="format" name="format"><?php foreach (['mp3', 'wav', 'opus'] as $f): ?><option value="<?= h($f) ?>" <?= $selectedFormat === $f ? 'selected' : '' ?>><?= h(strtoupper($f)) ?></option><?php endforeach; ?></select></div>
+                        </div>
+
+                        <?php $controlScope = 'single'; include __DIR__ . '/shared_controls.php'; unset($controlScope); ?>
+
+                        <div class="inline-help guide-lines">
+                            <div class="guide-line"><span class="guide-label">Английское слово</span><code>Сегодня разберём [English]rainforest.</code></div>
+                            <div class="guide-line"><span class="guide-label">Дикторская подача</span><code>[professional narrator, calm, confident]</code></div>
+                        </div>
+                        <div class="desktop-submit"><button class="primary-button" type="submit">Озвучить текст</button></div>
+                    </aside>
                 </div>
-            </div>
+            </form>
+        </section>
 
-            <div class="grid dialogue-settings">
-                <div>
-                    <label for="dialogue_mode">Режим диалога</label>
-                    <select id="dialogue_mode" name="dialogue_mode">
-                        <option value="auto" <?= $dialogueMode === 'auto' ? 'selected' : '' ?>>Авто: Fish native → склейка при ошибке</option>
-                        <option value="native" <?= $dialogueMode === 'native' ? 'selected' : '' ?>>Только Fish native multi-speaker</option>
-                        <option value="segments" <?= $dialogueMode === 'segments' ? 'selected' : '' ?>>Только склейка реплик</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="dialogue_output_format">Итоговый формат</label>
-                    <select id="dialogue_output_format" name="dialogue_output_format">
-                        <option value="mp3" <?= $dialogueOutputFormat === 'mp3' ? 'selected' : '' ?>>MP3</option>
-                        <option value="wav" <?= $dialogueOutputFormat === 'wav' ? 'selected' : '' ?>>WAV</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="model_dialogue_hint">Модель</label>
-                    <select id="model_dialogue_hint" name="model">
-                        <?php foreach (['s2.1-pro-free', 's2.1-pro', 's2-pro', 's1'] as $m): ?>
-                            <option value="<?= h($m) ?>" <?= $selectedModel === $m ? 'selected' : '' ?>><?= h($m) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
-
-            <div class="grid dialogue-pause">
-                <div>
-                    <label for="pause_ms">Пауза для режима склейки, мс</label>
-                    <input id="pause_ms" name="pause_ms" type="number" min="0" max="3000" step="50" value="<?= h(post_string('pause_ms', '350')) ?>">
-                </div>
-            </div>
-
-            <div class="actions utility-actions">
-                <button type="button" class="secondary js-tag-english" data-target="dialogue_text">Пометить английские слова [English]</button>
-                <span class="small">Проверьте результат: кнопка может задеть бренды, ссылки и email.</span>
-            </div>
-
-            <div class="hint">
-                <div class="hint-rows">
-                    <div class="hint-row"><span class="hint-label">Пример сценария</span><span><code>М: [calm] Привет.</code></span><span><code>Ж: [excited] Сегодня разбираем [English]rainforest!</code></span></div>
-                    <div class="hint-row"><span class="hint-label">Что отправится в Fish</span><span><code>&lt;|speaker:0|&gt;[calm] Привет.</code></span><span><code>&lt;|speaker:1|&gt;[excited] ...</code></span></div>
-                </div>
-            </div>
-
-            <div class="actions submit-zone">
-                <button type="submit">Озвучить диалог</button>
-                <span class="small">Native-режим не требует ffmpeg и не создаёт отдельные реплики.</span>
-            </div>
-
-            <?php include __DIR__ . '/shared_controls.php'; ?>
-        </form>
-    </div>
-
-    <div class="card mode-card tab-panel <?= $activeTab === 'single' ? 'is-active' : '' ?>" id="single-card" role="tabpanel" data-tab-panel="single" <?= $activeTab === 'single' ? '' : 'hidden' ?>>
-        <h2>Обычная озвучка одним голосом</h2>
-        <form method="post" class="voice-form single-form">
-            <input type="hidden" name="action" value="synthesize">
-            <input type="hidden" name="active_tab" value="single">
-
-            <label for="text">Текст</label>
-            <textarea id="text" name="text" required><?= h($lastText) ?></textarea>
-
-            <div class="actions utility-actions">
-                <button type="button" class="secondary js-tag-english" data-target="text">Пометить английские слова [English]</button>
-                <span class="small">Проверьте результат: кнопка может задеть бренды, ссылки и email.</span>
-            </div>
-
-            <div class="tag-panel" aria-label="Подсказки по тегам Fish Audio">
-                <p class="tag-panel-title">Теги для интонации и эффектов</p>
-                <p class="tag-panel-desc">Клик по тегу копирует его в буфер. Теги — это подсказки модели, поэтому лучше тестировать на коротких фразах.</p>
-
-                <div class="tag-group">
-                    <div class="tag-group-title">Язык</div>
-                    <div class="chips"><button type="button" class="chip js-copy-tag" data-copy="[English]">[English]</button></div>
-                </div>
-
-                <div class="tag-group">
-                    <div class="tag-group-title">Диалог Fish native</div>
-                    <div class="chips">
-                        <button type="button" class="chip js-copy-tag" data-copy="<|speaker:0|>">&lt;|speaker:0|&gt;</button>
-                        <button type="button" class="chip js-copy-tag" data-copy="<|speaker:1|>">&lt;|speaker:1|&gt;</button>
-                    </div>
-                </div>
-
-                <div class="tag-group">
-                    <div class="tag-group-title">Интонация / эмоции</div>
-                    <div class="chips">
-                        <?php foreach (['[calm]', '[confident]', '[excited]', '[curious]', '[sarcastic]', '[sad]', '[surprised]', '[angry]'] as $tag): ?>
-                            <button type="button" class="chip js-copy-tag" data-copy="<?= h($tag) ?>"><?= h($tag) ?></button>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-
-                <div class="tag-group">
-                    <div class="tag-group-title">Подача / голос</div>
-                    <div class="chips">
-                        <?php foreach (['[whisper]', '[emphasis]', '[softly]', '[speaking slowly]', '[teacher tone]'] as $tag): ?>
-                            <button type="button" class="chip js-copy-tag" data-copy="<?= h($tag) ?>"><?= h($tag) ?></button>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-
-                <div class="tag-group">
-                    <div class="tag-group-title">Звуки / паузы</div>
-                    <div class="chips">
-                        <?php foreach (['[laugh]', '[sigh]', '[gasp]', '[inhale]', '[exhale]', '[pause]'] as $tag): ?>
-                            <button type="button" class="chip js-copy-tag" data-copy="<?= h($tag) ?>"><?= h($tag) ?></button>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-
-                <div class="tag-group">
-                    <div class="tag-group-title">Готовые примеры</div>
-                    <div class="sample-row">
-                        <code>[calm] Сегодня разберём слово [English]rainforest.</code>
-                        <button type="button" class="chip js-copy-tag" data-copy="[calm] Сегодня разберём слово [English]rainforest.">Копировать</button>
-                    </div>
-                    <div class="sample-row">
-                        <code>[curious] А почему [English]greenhouse — это не зелёный дом?</code>
-                        <button type="button" class="chip js-copy-tag" data-copy="[curious] А почему [English]greenhouse — это не зелёный дом?">Копировать</button>
-                    </div>
-                    <div class="sample-row">
-                        <code>М: Привет. / Ж: Привет. [laugh]</code>
-                        <button type="button" class="chip js-copy-tag" data-copy="М: Привет.\nЖ: Привет. [laugh]">Копировать</button>
-                    </div>
-                    <div class="sample-row">
-                        <code>&lt;|speaker:0|&gt;Привет. &lt;|speaker:1|&gt;Привет. [laugh]</code>
-                        <button type="button" class="chip js-copy-tag" data-copy="<|speaker:0|>Привет.\n<|speaker:1|>Привет. [laugh]">Копировать Fish native</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid single-settings">
-                <div>
-                    <label for="model">Модель</label>
-                    <select id="model" name="model">
-                        <?php foreach (['s2.1-pro-free', 's2.1-pro', 's2-pro', 's1'] as $m): ?>
-                            <option value="<?= h($m) ?>" <?= $selectedModel === $m ? 'selected' : '' ?>><?= h($m) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div>
-                    <label for="voice_preset">Голос</label>
-                    <select id="voice_preset" name="voice_preset"><?= render_voice_options($voicePresets, $selectedVoicePreset, true) ?></select>
-                </div>
-                <div>
-                    <label for="format">Формат</label>
-                    <select id="format" name="format">
-                        <?php foreach (['mp3', 'wav', 'opus'] as $f): ?>
-                            <option value="<?= h($f) ?>" <?= $selectedFormat === $f ? 'selected' : '' ?>><?= h($f) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
-
-            <div id="customVoiceWrap" class="custom-voice <?= $selectedVoicePreset === '__custom__' ? 'is-visible' : '' ?>">
-                <label for="custom_reference_id">Свой Voice ID / reference_id</label>
-                <input id="custom_reference_id" name="custom_reference_id" value="<?= h($customReferenceId) ?>" placeholder="например: 2a1036d645634680b3cc69aeeb60375b">
-            </div>
-
-            <?php include __DIR__ . '/shared_controls.php'; ?>
-
-            <div class="hint">
-                Для S2/S2.1 лучше использовать квадратные скобки: <code>[English]rainforest</code>, <code>[whisper]</code>, <code>[laugh]</code>, <code>[pause]</code>.
-                Сложные описания тоже можно пробовать: <code>[whispers sweetly]</code>, <code>[laughing nervously]</code>.
-            </div>
-
-            <div class="actions submit-zone">
-                <button type="submit">Озвучить</button>
-                <span class="small">API-ключ остаётся на сервере, в браузер не отдаётся.</span>
-            </div>
-        </form>
-    </div>
+        <div id="mobile-action-dialogue" class="mobile-action <?= $activeTab === 'dialogue' ? 'is-active' : '' ?>" data-mobile-action="dialogue">
+            <button type="button" class="primary-button js-submit-form" data-form="dialogue-form">Озвучить диалог</button>
+        </div>
+        <div id="mobile-action-single" class="mobile-action <?= $activeTab === 'single' ? 'is-active' : '' ?>" data-mobile-action="single">
+            <button type="button" class="primary-button js-submit-form" data-form="single-form">Озвучить текст</button>
+        </div>
     <?php endif; ?>
 
     <footer class="app-footer">
-        <span>Fish Audio TTS Web · лёгкая PHP-вебморда для озвучки</span>
+        <span>Fish Audio TTS Web</span>
         <span>Автор: <a href="https://it-uu.ru" target="_blank" rel="noopener noreferrer">it-uu.ru</a></span>
     </footer>
 </div>
 <script>
 (function () {
+    const tabs = Array.from(document.querySelectorAll('.mode-tab'));
+    const panels = Array.from(document.querySelectorAll('[data-tab-panel]'));
+    const mobileActions = Array.from(document.querySelectorAll('[data-mobile-action]'));
+
+    function activateTab(name, persist = true) {
+        tabs.forEach((tab) => {
+            const active = tab.dataset.tab === name;
+            tab.classList.toggle('is-active', active);
+            tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        panels.forEach((panel) => { panel.hidden = panel.dataset.tabPanel !== name; });
+        mobileActions.forEach((bar) => bar.classList.toggle('is-active', bar.dataset.mobileAction === name));
+        if (persist) { try { localStorage.setItem('fish_tts_active_tab', name); } catch (e) {} }
+    }
+    tabs.forEach((tab) => tab.addEventListener('click', () => activateTab(tab.dataset.tab)));
+    try {
+        const saved = localStorage.getItem('fish_tts_active_tab');
+        if (saved && !document.querySelector('.alert.ok, .alert.error')) activateTab(saved, false);
+    } catch (e) {}
+
     function toggleCustom(selectId, wrapId) {
         const select = document.getElementById(selectId);
         const wrap = document.getElementById(wrapId);
@@ -1287,26 +1208,44 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post_string
     toggleCustom('male_voice_preset', 'customMaleVoiceWrap');
     toggleCustom('female_voice_preset', 'customFemaleVoiceWrap');
 
-    const tabs = document.querySelectorAll('.mode-tab');
-    const panels = document.querySelectorAll('[data-tab-panel]');
-    function activateTab(name) {
-        tabs.forEach((tab) => {
-            const isActive = tab.getAttribute('data-tab') === name;
-            tab.classList.toggle('is-active', isActive);
-            tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
-        });
-        panels.forEach((panel) => {
-            panel.hidden = panel.getAttribute('data-tab-panel') !== name;
-        });
-        try { window.localStorage.setItem('fish_tts_active_tab', name); } catch (e) {}
+    function setCursor(target, position) {
+        target.focus({preventScroll: true});
+        target.setSelectionRange(position, position);
+        target.dispatchEvent(new Event('input', {bubbles: true}));
     }
-    tabs.forEach((tab) => {
-        tab.addEventListener('click', () => activateTab(tab.getAttribute('data-tab')));
-    });
-    try {
-        const savedTab = window.localStorage.getItem('fish_tts_active_tab');
-        if (savedTab && !document.querySelector('.alert.ok')) activateTab(savedTab);
-    } catch (e) {}
+    function insertAtCursor(target, text) {
+        const start = target.selectionStart ?? target.value.length;
+        const end = target.selectionEnd ?? start;
+        target.value = target.value.slice(0, start) + text + target.value.slice(end);
+        setCursor(target, start + text.length);
+    }
+    function insertLine(target, prefix) {
+        const cursor = target.selectionStart ?? target.value.length;
+        const before = target.value.slice(0, cursor);
+        let insertion = prefix;
+        if (before.length && !before.endsWith('\n')) insertion = '\n' + insertion;
+        insertAtCursor(target, insertion);
+    }
+    function insertBlock(target, block) {
+        const cursor = target.selectionStart ?? target.value.length;
+        const before = target.value.slice(0, cursor);
+        let insertion = block;
+        if (before.trim() !== '' && !before.endsWith('\n\n')) insertion = (before.endsWith('\n') ? '\n' : '\n\n') + insertion;
+        insertAtCursor(target, insertion);
+    }
+
+    document.querySelectorAll('.js-insert').forEach((button) => button.addEventListener('click', () => {
+        const target = document.getElementById(button.dataset.target);
+        if (target) insertAtCursor(target, button.dataset.insert || '');
+    }));
+    document.querySelectorAll('.js-insert-line').forEach((button) => button.addEventListener('click', () => {
+        const target = document.getElementById(button.dataset.target);
+        if (target) insertLine(target, button.dataset.insert || '');
+    }));
+    document.querySelectorAll('.js-insert-block').forEach((button) => button.addEventListener('click', () => {
+        const target = document.getElementById(button.dataset.target);
+        if (target) insertBlock(target, button.dataset.insert || '');
+    }));
 
     function tagEnglish(text) {
         return text.replace(/\b[A-Za-z][A-Za-z0-9+.#'’\-]*\b/g, function (match, offset, full) {
@@ -1315,53 +1254,30 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post_string
             const prev = full.slice(Math.max(0, offset - 1), offset);
             if (match === 'English' && prev === '[' && after === ']') return match;
             if (before === '[English]') return match;
-            if (/^(https?|www|mailto)$/i.test(match)) return match;
-            if (/^speaker$/i.test(match)) return match;
+            if (/^(https?|www|mailto|speaker)$/i.test(match)) return match;
             return '[English]' + match;
         });
     }
+    document.querySelectorAll('.js-tag-english').forEach((button) => button.addEventListener('click', () => {
+        const target = document.getElementById(button.dataset.target);
+        if (!target) return;
+        const cursor = target.selectionStart ?? target.value.length;
+        target.value = tagEnglish(target.value);
+        setCursor(target, Math.min(cursor, target.value.length));
+    }));
 
-    document.querySelectorAll('.js-tag-english').forEach((button) => {
-        button.addEventListener('click', () => {
-            const target = document.getElementById(button.getAttribute('data-target'));
-            if (!target) return;
-            target.value = tagEnglish(target.value);
-            target.focus();
-        });
-    });
+    document.querySelectorAll('.js-submit-form').forEach((button) => button.addEventListener('click', () => {
+        const form = document.getElementById(button.dataset.form);
+        if (form) form.requestSubmit();
+    }));
 
-    const copyToClipboard = async (value) => {
-        if (navigator.clipboard && window.isSecureContext) {
-            await navigator.clipboard.writeText(value);
-            return;
-        }
-        const tmp = document.createElement('textarea');
-        tmp.value = value;
-        tmp.setAttribute('readonly', '');
-        tmp.style.position = 'fixed';
-        tmp.style.left = '-9999px';
-        document.body.appendChild(tmp);
-        tmp.select();
-        document.execCommand('copy');
-        document.body.removeChild(tmp);
-    };
-
-    document.querySelectorAll('.js-copy-tag').forEach((button) => {
-        const originalText = button.textContent;
-        button.addEventListener('click', async () => {
-            const value = button.getAttribute('data-copy') || originalText;
-            try {
-                await copyToClipboard(value);
-                button.classList.add('is-copied');
-                button.textContent = 'Скопировано';
-                window.setTimeout(() => {
-                    button.classList.remove('is-copied');
-                    button.textContent = originalText;
-                }, 900);
-            } catch (e) {
-                alert('Не получилось скопировать. Скопируйте вручную: ' + value);
-            }
-        });
+    function updateCounter(textarea) {
+        const counter = document.querySelector('[data-counter-for="' + textarea.id + '"]');
+        if (counter) counter.textContent = textarea.value.length.toLocaleString('ru-RU') + ' символов';
+    }
+    document.querySelectorAll('.js-counted').forEach((textarea) => {
+        textarea.addEventListener('input', () => updateCounter(textarea));
+        updateCounter(textarea);
     });
 })();
 </script>
